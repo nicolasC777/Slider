@@ -15,8 +15,7 @@ public class UIManager : MonoBehaviour
     public bool isGamePaused;
     // public bool isArtifactOpen;
     public static bool canOpenMenus = true;
-
-    public static bool closeUI;
+    private static bool couldOpenMenusLastFrame = true; // DC: maximum jank because timing
 
     private InputSettings controls;
 
@@ -61,43 +60,37 @@ public class UIManager : MonoBehaviour
         controls.Disable();
     }
 
-    void Update()
+    private void LateUpdate() 
     {
-        if (closeUI)
-        {
-            closeUI = false;
-            ResumeGame();
-        }
+        couldOpenMenusLastFrame = canOpenMenus;
     }
+
 
     private void OnPressPause()
     {
         if (isGamePaused && pausePanel.activeSelf)
         {
-            Debug.Log("a");
             ResumeGame();
         }
-        else
+        else if (optionsPanel.activeSelf)
+        {
+            OpenPause();
+        }
+        else if (controlsPanel.activeSelf || advOptionsPanel.activeSelf)
         {
             // if in a pause sub-menu
-            if (controlsPanel.activeSelf || advOptionsPanel.activeSelf)
-            {
-                OpenOptions();
-            }
-            else
-            {
-                // if another menu is open (e.g. ocean shop)
-                if (IsUIOpen())
-                {
-                    // do nothing
-                    Debug.Log("Another menu is open, doing nothing..");
-                }
-                else 
-                {
-                    PauseGame();
-                    OpenPause();
-                }
-            }
+            OpenOptions();
+        }
+        else if (IsUIOpen())
+        {
+            // if another menu is open (e.g. ocean shop)
+            // do nothing
+            Debug.Log("Another menu is open, doing nothing..");
+        }
+        else 
+        {
+            PauseGame();
+            OpenPause();
         }
     }
 
@@ -160,7 +153,7 @@ public class UIManager : MonoBehaviour
     // we should consider refactoring this to use a state machine
     public void PauseGame()
     {
-        if (!canOpenMenus)
+        if (!couldOpenMenusLastFrame)
             return;
 
         Time.timeScale = 0f;
@@ -173,7 +166,7 @@ public class UIManager : MonoBehaviour
 
     public void OpenPause()
     {
-        if (!canOpenMenus)
+        if (!couldOpenMenusLastFrame)
             return;
 
         pausePanel.SetActive(true);
@@ -184,7 +177,7 @@ public class UIManager : MonoBehaviour
 
     public void OpenOptions()
     {
-        if (!canOpenMenus)
+        if (!couldOpenMenusLastFrame)
             return;
 
         pausePanel.SetActive(false);
@@ -195,7 +188,7 @@ public class UIManager : MonoBehaviour
 
     public void OpenControls()
     {
-        if (!canOpenMenus)
+        if (!couldOpenMenusLastFrame)
             return;
 
         optionsPanel.SetActive(false);
@@ -203,7 +196,7 @@ public class UIManager : MonoBehaviour
     }
     public void OpenAdvOptions()
     {
-        if (!canOpenMenus)
+        if (!couldOpenMenusLastFrame)
             return;
 
         optionsPanel.SetActive(false);

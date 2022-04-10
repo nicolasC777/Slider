@@ -48,6 +48,7 @@ public class SGrid : MonoBehaviour
     {
 
         current = this;
+        InitUIArtifact();
         LoadGrid();
         SetBGGrid(bgGridTiles);
 
@@ -60,31 +61,10 @@ public class SGrid : MonoBehaviour
         // OnGridMove += CheckCompletions;
     }
 
-    /// <summary>
-    /// Returns the number of STiles collected in the current SGrid.
-    /// </summary>
-    /// <returns></returns>
-    public int GetNumTilesCollected() {
-        int numCollected = 0;
-        foreach (STile tile in stiles)
-        {
-            if (tile.isTileCollected)
-            {
-                numCollected++;
-            }
-        }
-        return numCollected;
-    }
-    /// <summary>
-    /// Returns the number of STiles available in the current SGrid.
-    /// </summary>
-    /// <returns></returns>
-    public int GetTotalNumTiles()
+    private void InitUIArtifact()
     {
-        return width * height;
+        GameObject.FindObjectOfType<UIArtifact>().Init();
     }
-
-
 
     public STile[,] GetGrid()
     {
@@ -212,6 +192,30 @@ public class SGrid : MonoBehaviour
             if(tile.isTileActive)
                 stileList.Add(tile);
         return stileList;
+    }
+
+    /// <summary>
+    /// Returns the number of STiles collected in the current SGrid.
+    /// </summary>
+    /// <returns></returns>
+    public int GetNumTilesCollected() {
+        int numCollected = 0;
+        foreach (STile tile in stiles)
+        {
+            if (tile.isTileCollected)
+            {
+                numCollected++;
+            }
+        }
+        return numCollected;
+    }
+    /// <summary>
+    /// Returns the number of STiles available in the current SGrid.
+    /// </summary>
+    /// <returns></returns>
+    public int GetTotalNumTiles()
+    {
+        return width * height;
     }
 
     //S: copy of Player's GetStileUnderneath for the tracker
@@ -421,7 +425,6 @@ public class SGrid : MonoBehaviour
     protected virtual void UpdateButtonCompletionsHelper()
     {
         // Debug.Log("Checking completions!");
-        // ineffecient lol
         for (int x = 0; x < current.width; x++) {
             for (int y = 0; y < current.width; y++) {
                 // int tid = current.targetGrid[x, y];
@@ -439,6 +442,33 @@ public class SGrid : MonoBehaviour
                 }
             }
         }
+    }
+
+    protected static int GetNumButtonCompletions()
+    {
+        return current.GetNumButtonCompletionsHelper();
+    }
+
+    protected virtual int GetNumButtonCompletionsHelper()
+    {
+        int numComplete = 0;
+        for (int x = 0; x < current.width; x++) {
+            for (int y = 0; y < current.width; y++) {
+                string tids = GetTileIdAt(x, y);
+                ArtifactTileButton artifactButton = UIArtifact.GetButton(x, y);
+                if (tids == "*") 
+                {
+                    numComplete += 1;
+                }
+                else {
+                    int tid = int.Parse(tids);
+                    if (artifactButton.islandId == tid)
+                        numComplete += 1;
+                }
+            }
+        }
+
+        return numComplete;
     }
 
     protected IEnumerator CheckCompletionsAfterDelay(float t)
